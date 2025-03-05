@@ -1,6 +1,7 @@
 import json
-from collections import namedtuple, defaultdict, deque
-
+from collections import namedtuple, defaultdict
+import gurobipy as gp
+from gurobipy import GRB
 
 class Donor(object):
     def __init__(self, id, dage):
@@ -56,26 +57,38 @@ class Pool():
     def add_donor_patient_node(self, donor_patient_node):
         self.donor_patient_nodes.append(donor_patient_node)
 
+
     def add_edges_to_nodes(self):
-        id_to_nodes = defaultdict(list)
+        # id_to_nodes is a dict that stores the patient ids as the key
+        # and the corresponding donor_patient_nodes that the patient is
+        # related to
+        patient_id_to_nodes = defaultdict(list)
         for node in self.donor_patient_nodes:
-            id_to_nodes[node.patient].append(node)
+            patient_id_to_nodes[node.patient].append(node)
+
+        # for each donor patient node, the corresponding donor
+        # to the recipient patient is found through the id_to_nodes list
+
         for donor_patient_node in self.donor_patient_nodes:
             for recipient_with_score in donor_patient_node.recipient_patients:
                 recipient_patient_id = recipient_with_score.recipient_patient
                 score = recipient_with_score.score
-                if recipient_patient_id in id_to_nodes:
-                    for recipient_node in id_to_nodes[recipient_patient_id]:
+                if recipient_patient_id in patient_id_to_nodes:
+                    for recipient_node in patient_id_to_nodes[recipient_patient_id]:
                         donor_patient_node.add_edge(recipient_node, score)
 
     def return_cycles(self, max_cycle_length):
         cycles = []
+
+        # removes duplicates from find_cycles function
         for dp_node in self.donor_patient_nodes:
             curr_cycle = set()
             curr_cycle.add(dp_node)
             length = max_cycle_length
+
             for out_edge in dp_node.out_edges:
                 self.find_cycles(dp_node, out_edge.donor_recipient_node, curr_cycle, cycles, length - 1)
+
         return cycles
 
     def find_cycles(self, max_length):
@@ -89,7 +102,8 @@ class Pool():
             def dfs(current_node):
                 if len(path) > max_length:
                     return
-                    
+                
+                # frozenset helps remove duplicates in the tuples
                 if path and current_node == start_node and len(path) == max_length:
                     cycles.add(frozenset(path))
                     return
@@ -110,6 +124,58 @@ class Pool():
             dfs(start_node)
         
         return cycles
+    
+    def gurobi_trial(self, donor_patient_nodes):
+        model = gp.Model()
+        edges = []
+        for node in donor_patient_nodes:
+             u = (node.donor.id, node.patient)
+             for e in node.out_edges:
+                  target_node = e.donor_recipient_node
+                  v = (target_node.donor.id, int(target_node.patient))
+                  edges.append((u, v))
+                  
+
+        var_edges = model.addVars(edges, vtype=GRB.BINARY, name="edge")
+        for u, v in edges:
+            # make sure the reverse edge exists
+            if (v, u) in edges:  
+                model.addConstr(var_edges[u, v] == var_edges[v, u], name=f"{u}_{v}_two_cycle")
+
+        model.setObjective(gp.quicksum(var_edges[u, v] for u, v in edges if (v, u) in edges), GRB.MAXIMIZE)
+        model.optimize()
+        for u, v in edges:
+            if (u, v) in edges and (v, u) in edges:
+                # > 0.5 means edge has been selected
+                # check both to and back have been selected
+                if var_edges[u, v].X > 0.5: 
+                    if var_edges[v, u].X > 0.5:
+                        print(f"2-cycle found: ({u} -> {v}) and ({v} -> {u})")
+
+        three_cycles = []
+
+        for u, v in edges:
+            for w in donor_patient_nodes:
+                w_id = (w.donor.id, w.patient)
+                if (v, w_id) in edges and (w_id, u) in edges:
+                    three_cycles.append((u, v, w_id))
+
+        for (u, v, w) in three_cycles:
+            model.addConstr(var_edges[u, v] + var_edges[v, w] + var_edges[w, u] == 3, name=f"{u}_{v}_{w}_three_cycle")
+
+        model.setObjective(
+            gp.quicksum(var_edges[u, v] + var_edges[v, w] + var_edges[w, u] for (u, v, w) in three_cycles) / 3, 
+            GRB.MAXIMIZE
+        )
+
+        seen = set()
+
+        for (u, v, w) in three_cycles:
+            curr_set = frozenset((u, v, w))
+            if curr_set not in seen:
+                seen.add(curr_set)
+                if var_edges[u, v].X > 0.5 and var_edges[v, w].X > 0.5 and var_edges[w, u].X > 0.5:
+                    print(f"3-cycle found: {u} -> {v} -> {w} -> {u}")
 
 
 def print_pool_donor_nodes(pool):
@@ -138,9 +204,8 @@ def print_graph(pool):
 RecipientWithScore = namedtuple('RecipientWithScore', ['recipient_patient', 'score'])
 
 pool = Pool()
+
 # reading from test.json and creating pool graph
-# want to first add all the (d, p) npdes and altruist nodes, along with altruist edges
-# cannot yet add the dp edges as do not have all dps!
 with open("test.json") as dataset_json:
     json_data = json.load(dataset_json)["data"]
     seen_patient_ids = set()
@@ -200,3 +265,5 @@ print("\nChecking cycles:")
 for pair_frozen in cycs:
     pair = list(pair_frozen)
     print(f"\nPair:(Node: Donor {pair[0].donor.id}, Patient {pair[0].patient}, Node: Donor {pair[1].donor.id}, Patient {pair[1].patient}, Node: Donor {pair[2].donor.id}, Patient {pair[2].patient})")
+
+pool.gurobi_trial(pool.donor_patient_nodes)
