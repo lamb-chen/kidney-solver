@@ -61,34 +61,37 @@ class GurobiSolver(object):
     def run_gurobi_cycle_finder(self, donor_patient_nodes):
         edges = []
         for node in donor_patient_nodes:
-             u = (node.donor.id, node.patient.id)
-             for e in node.out_edges:
-                  target_node = e.donor_recipient_node
-                  v = (target_node.donor.id, int(target_node.patient.id))
-                  edges.append((u, v))
+            u = (node.donor.id, node.patient.id)
+            for e in node.out_edges:
+                target_node = e.donor_recipient_node
+                v = (target_node.donor.id, int(target_node.patient.id))
+                edges.append((u, v))
 
         var_edges = self.model.addVars(edges, vtype=GRB.BINARY, name="edge")
+        
         for u, v in edges:
-            # make sure the reverse edge exists
-            if (v, u) in edges:  
+            # Make sure the reverse edge exists
+            if (v, u) in edges:
                 self.model.addConstr(var_edges[u, v] == var_edges[v, u], name=f"{u}_{v}_two_cycle")
 
         self.model.setObjective(quicksum(var_edges[u, v] for u, v in edges if (v, u) in edges), GRB.MAXIMIZE)
         self.model.optimize()
+
         seen = set()
+        two_cycles_list = []
+
+        # Finding 2-cycles
         for u, v in edges:
             if (u, v) in edges and (v, u) in edges:
                 # > 0.5 means edge has been selected
-                # check both to and back have been selected
-                if var_edges[u, v].X > 0.5: 
-                    if var_edges[v, u].X > 0.5:
-                        curr_set = frozenset((u, v))
-                        if curr_set not in seen:
-                            seen.add(curr_set)
-                            print(f"2-cycle found: ({u} -> {v}) and ({v} -> {u})")
+                # check both to and back have been selected                
+                if var_edges[u, v].X > 0.5 and var_edges[v, u].X > 0.5:
+                    curr_set = frozenset((u, v))
+                    if curr_set not in seen:
+                        seen.add(curr_set)
+                        two_cycles_list.append((u, v))  
 
         three_cycles = []
-
         for u, v in edges:
             for w in donor_patient_nodes:
                 w_id = (w.donor.id, w.patient.id)
@@ -99,17 +102,21 @@ class GurobiSolver(object):
             self.model.addConstr(var_edges[u, v] + var_edges[v, w] + var_edges[w, u] == 3, name=f"{u}_{v}_{w}_three_cycle")
 
         self.model.setObjective(
-            quicksum(var_edges[u, v] + var_edges[v, w] + var_edges[w, u] for (u, v, w) in three_cycles) / 3, 
+            quicksum(var_edges[u, v] + var_edges[v, w] + var_edges[w, u] for (u, v, w) in three_cycles) / 3,
             GRB.MAXIMIZE
         )
+        
+        self.model.optimize()
 
         seen = set()
-        count = 0
+        three_cycles_list = []
+
+        # Finding 3-cycles
         for (u, v, w) in three_cycles:
             curr_set = frozenset((u, v, w))
             if curr_set not in seen:
                 seen.add(curr_set)
                 if var_edges[u, v].X > 0.5 and var_edges[v, w].X > 0.5 and var_edges[w, u].X > 0.5:
-                    print(f"3-cycle found: {u} -> {v} -> {w} -> {u}")
-                    count += 1
-        print("\nCount: ", count)
+                    three_cycles_list.append((u, v, w)) 
+
+        return two_cycles_list, three_cycles_list

@@ -1,7 +1,6 @@
 import unittest
 from src import reader as r
 from src import solver
-from src import pool
 
 class TestCriteriaSolver(unittest.TestCase):
 
@@ -34,6 +33,9 @@ class TestCriteriaSolver(unittest.TestCase):
         constraint_list = ["MAX_TWO_CYCLES", "MAX_SIZE"]
         optimal_cycles = g_solver.add_contraints(pool.donor_patient_nodes, constraint_list)
         self.assertEqual(len(optimal_cycles[0].donor_patient_nodes), 3)
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
