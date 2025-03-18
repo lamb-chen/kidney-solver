@@ -1,5 +1,5 @@
 from gurobipy import *
-import criteria
+from src import criteria
 
 class GurobiSolver(object):
     def __init__(self, pool, max_length, cycles):
@@ -15,8 +15,25 @@ class GurobiSolver(object):
 
     def _items_in_optimal_solution(self, items):
             return [item for item in items if item.mip_var.X > 0.5]
+    
+    def choose_constraints(self, constraint_list, cycles):
+        final_constraints = []
+        for constraint in constraint_list:
+            if constraint == "MAX_TWO_CYCLES":
+                final_constraints.append([cycle.mip_var * criteria.MaxTwoCycles().cycle_val(cycle) for cycle in cycles])
+            elif constraint == "MAX_SIZE":
+                final_constraints.append([cycle.mip_var * criteria.MaxSize().cycle_val(cycle) for cycle in cycles])
+            elif constraint == "MAX_BACKARCS":
+                final_constraints.append([cycle.mip_var * criteria.MaxSize().cycle_val(cycle) for cycle in cycles])
+            elif constraint == "MIN_THREE_CYCLES":
+                final_constraints.append([cycle.mip_var * criteria.MaxSize().cycle_val(cycle) for cycle in cycles])
+            elif constraint == "MAX_WEIGHT":
+                final_constraints.append([cycle.mip_var * criteria.MaxSize().cycle_val(cycle) for cycle in cycles])
+        return final_constraints
+
+
         
-    def add_contraints(self, donor_patient_nodes):
+    def add_contraints(self, donor_patient_nodes, constraint_list):
         for cycle in self.cycles:
             cycle.mip_var = self.model.addVar(vtype=GRB.BINARY, name='cycle' + str(cycle.index))
         self.model.update()
@@ -26,14 +43,20 @@ class GurobiSolver(object):
             self.model.addConstr(quicksum(node.patient.mip_vars) <= 1)
             self.model.addConstr(quicksum(node.donor.mip_vars) <= 1)
         self.model.update()
-        self.model.setObjective(quicksum([cycle.mip_var * criteria.MaxTwoCycles().cycle_val(cycle) for cycle in self.cycles]), GRB.MAXIMIZE)
+        # max number of 2 cycles
+        self.model.ModelSense = GRB.MAXIMIZE 
+        final_constraints = self.choose_constraints(constraint_list, self.cycles)
+        for i in range(len(final_constraints)):
+            self.model.setObjectiveN(quicksum(final_constraints[i]), index=i, weight=1.0, priority=i)        
+        # maximum size cycle i.e. max number of transplants
+        # self.model.setObjectiveN(quicksum([cycle.mip_var * criteria.MaxSize().cycle_val(cycle) for cycle in self.cycles]), index=2, weight=1.0, priority=2)        
+        # self.model.setObjectiveN(quicksum([cycle.mip_var * criteria.MaxBackarcs().cycle_val(cycle) for cycle in self.cycles]), index=3, weight=1.0, priority=3)        
+        # self.model.setObjectiveN(quicksum([cycle.mip_var * criteria.MinThreeCyles().cycle_val(cycle) for cycle in self.cycles]), index=4, weight=-1.0, priority=4)     
         self.model.optimize()
         optimal_cycles = self._items_in_optimal_solution(self.cycles)
-        for item in optimal_cycles:
-            print("Chosen cycle: ", item.index)
-            for node in item.donor_patient_nodes:
-                print("Donor: ", node.donor.id, "Patient: ", node.patient.id)
-
+        # for var in self.model.getVars():
+        #     print(f"{var.varName}: {var.x}")
+        return optimal_cycles
 
     def run_gurobi_cycle_finder(self, donor_patient_nodes):
         edges = []

@@ -28,6 +28,9 @@ def print_cycles(cycles):
         print("\nCycle:", count)
         for node in cycle.donor_patient_nodes:  # Assuming Cycle has a `.nodes` attribute
             print("Donor:", node.donor.id, "Patient:", node.patient.id)
+        print("Num of backarcs: ", cycle.find_backarcs())
+        print("\n")
+
 def print_graph_connectivity(pool):
     print("\nChecking graph connectivity:")
     for node in pool.donor_patient_nodes:
@@ -35,3 +38,9 @@ def print_graph_connectivity(pool):
         print(f"Number of outgoing edges: {len(node.out_edges)}")
         for edge in node.out_edges:
             print(f"Edge to: Donor {edge.donor_recipient_node.donor.id}, Patient {edge.donor_recipient_node.patient}")
+
+def print_optimal_cycles(optimal_cycles):
+    for item in optimal_cycles:
+        print("Chosen cycle: ", item.index)
+    for node in item.donor_patient_nodes:
+        print("Donor: ", node.donor.id, "Patient: ", node.patient.id)
