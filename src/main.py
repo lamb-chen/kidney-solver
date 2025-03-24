@@ -1,7 +1,7 @@
-from src import pool as p
-from src import reader as r
-from src import solver 
-from src import printing
+import pool as p
+import reader as r
+import solver 
+import printing
 import sys
 
 
@@ -14,16 +14,18 @@ if __name__ == "__main__":
 
     reader = r.Reader()
     pool = reader.read_json(filename)
-    printing.print_pool_donor_nodes(pool)
+    # printing.print_pool_donor_nodes(pool)
+    # printing.print_graph(pool)
+    # printing.print_graph_connectivity(pool)
     printing.print_graph(pool)
-    printing.print_graph_connectivity(pool)
 
-    cycles = pool.create_cycle_objects(3)
-    printing.print_cycles(cycles)
+    cycles, chains = pool.create_cycles_and_chain_objects(3)
+    # printing.print_cycles(cycles)
+    printing.print_chains(chains)
 
-    g_solver = solver.GurobiSolver(pool=pool, max_length=3, cycles=cycles)
+    g_solver = solver.GurobiSolver(pool=pool, max_length=3, cycles=cycles, chains=chains)
     # # g_solver.run_gurobi_cycle_finder(pool.donor_patient_nodes)
     constraint_list = ["MAX_SIZE"]
-    optimal_cycles = g_solver.add_contraints(pool.donor_patient_nodes, constraint_list)
+    optimal_cycles = g_solver.add_constraints(pool, constraint_list)
 
     printing.print_optimal_cycles(optimal_cycles)

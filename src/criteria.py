@@ -24,20 +24,20 @@ class MaxSize():
         return cycle.length
 
     def altruist_val(self, altruist):
-        return 1
+        return 0
     
-class MinThreeCyles():
+class MinThreeCycles():
     def __init__(self):
         self.obj = "MIN"
 
     def chain_val(self, chain):
-        return chain.length
+        return chain.length == 3
 
     def cycle_val(self, cycle): 
-        return cycle.length
+        return cycle.length == 3
 
     def altruist_val(self, altruist):
-        return 1
+        return 0
 
 
 class MaxBackarcs():

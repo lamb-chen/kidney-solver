@@ -1,17 +1,21 @@
 from gurobipy import *
-from src import criteria
+import criteria
 
 class GurobiSolver(object):
-    def __init__(self, pool, max_length, cycles):
+    def __init__(self, pool, max_length, cycles, chains):
         self.model = Model()
         self.pool = pool
         self.cycles = cycles
+        self.chains = chains
         # self.chains = pool.find_chains()
 
     def add_vars_to_patients_and_donors(self, donor_patient_nodes, mip_var):
         for node in donor_patient_nodes:
             node.patient.mip_vars.append(mip_var) 
             node.donor.mip_vars.append(mip_var) 
+    
+    # def add_vars_to_altruists(self, altruists, mip_var):
+
 
     def _items_in_optimal_solution(self, items):
             return [item for item in items if item.mip_var.X > 0.5]
@@ -24,30 +28,44 @@ class GurobiSolver(object):
             elif constraint == "MAX_SIZE":
                 final_constraints.append([cycle.mip_var * criteria.MaxSize().cycle_val(cycle) for cycle in cycles])
             elif constraint == "MAX_BACKARCS":
-                final_constraints.append([cycle.mip_var * criteria.MaxSize().cycle_val(cycle) for cycle in cycles])
+                final_constraints.append([cycle.mip_var * criteria.MaxBackarcs().cycle_val(cycle) for cycle in cycles])
             elif constraint == "MIN_THREE_CYCLES":
-                final_constraints.append([cycle.mip_var * criteria.MaxSize().cycle_val(cycle) for cycle in cycles])
+                final_constraints.append([cycle.mip_var * criteria.MinThreeCycles().cycle_val(cycle) for cycle in cycles])
             elif constraint == "MAX_WEIGHT":
-                final_constraints.append([cycle.mip_var * criteria.MaxSize().cycle_val(cycle) for cycle in cycles])
+                final_constraints.append([cycle.mip_var * criteria.MaxOverallWeight().cycle_val(cycle) for cycle in cycles])
         return final_constraints
 
 
         
-    def add_contraints(self, donor_patient_nodes, constraint_list):
+    def add_constraints(self, pool, constraint_list):
+
         for cycle in self.cycles:
             cycle.mip_var = self.model.addVar(vtype=GRB.BINARY, name='cycle' + str(cycle.index))
+        for chain in self.chains:
+            chain.mip_var = self.model.addVar(vtype=GRB.BINARY, name='chain' + str(chain.index))
+        for altruist in pool.altruists:
+            altruist.mip_var = self.model.addVar(vtype=GRB.BINARY, name='altruist' + str(altruist.id))
+            altruist.mip_vars.append(altruist.mip_var)
         self.model.update()
+
         for cycle in self.cycles:
             self.add_vars_to_patients_and_donors(cycle.donor_patient_nodes, cycle.mip_var)
-        for node in donor_patient_nodes:
+            
+        for node in pool.donor_patient_nodes:
             self.model.addConstr(quicksum(node.patient.mip_vars) <= 1)
             self.model.addConstr(quicksum(node.donor.mip_vars) <= 1)
-        self.model.update()
-        # max number of 2 cycles
+
         self.model.ModelSense = GRB.MAXIMIZE 
+        self.model.update()
+
         final_constraints = self.choose_constraints(constraint_list, self.cycles)
         for i in range(len(final_constraints)):
-            self.model.setObjectiveN(quicksum(final_constraints[i]), index=i, weight=1.0, priority=i)        
+            print(final_constraints, "FINAL CONSTS")
+            if constraint_list[i] == "MIN_THREE_CYCLES":
+                self.model.setObjectiveN(-quicksum(final_constraints[i]), index=i, weight=1.0, priority=i, name=f"Objective_{i}")        
+            else:
+                self.model.setObjectiveN(quicksum(final_constraints[i]), index=i, weight=1.0, priority=i, name=f"Objective_{i}")        
+                
         # maximum size cycle i.e. max number of transplants
         # self.model.setObjectiveN(quicksum([cycle.mip_var * criteria.MaxSize().cycle_val(cycle) for cycle in self.cycles]), index=2, weight=1.0, priority=2)        
         # self.model.setObjectiveN(quicksum([cycle.mip_var * criteria.MaxBackarcs().cycle_val(cycle) for cycle in self.cycles]), index=3, weight=1.0, priority=3)        
