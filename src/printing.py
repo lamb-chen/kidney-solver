@@ -53,5 +53,5 @@ def print_graph_connectivity(pool):
 def print_optimal_cycles(optimal_cycles):
     for item in optimal_cycles:
         print("Chosen cycle: ", item.index)
-    for node in item.donor_patient_nodes:
-        print("Donor: ", node.donor.id, "Patient: ", node.patient.id)
+        for node in item.donor_patient_nodes:
+            print("Donor: ", node.donor.id, "Patient: ", node.patient.id)

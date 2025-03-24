@@ -1,0 +1,25 @@
+{ "data" :
+    {
+    "0" : { "altruistic": true,
+            "dage" : 29,
+            "matches" : [ { "recipient" : 1, "score" :  10} ]},
+    "1" : { "sources" : [1],
+            "dage" : 45,
+            "matches" : [ { "recipient" : 2, "score" : 1}]},
+    "2" : { "sources" : [2],
+            "dage" : 32,
+            "matches" : [ { "recipient" : 1, "score" : 3}]},
+    "3" : { "altruistic": true,
+            "dage" : 16,
+            "matches" : [ { "recipient" : 4, "score" :  10} ]},
+    "4" : { "sources" : [4],
+            "dage" : 55,
+            "matches" : [ { "recipient" : 5, "score" : 1}]},
+    "5" : { "sources" : [5],
+            "dage" : 22,
+            "matches" : [ { "recipient" : 6, "score" : 3}]},
+    "6" : { "sources" : [6],
+            "dage" : 63,
+            "matches" : [ { "recipient" : 4, "score" : 3}]}
+    }
+}

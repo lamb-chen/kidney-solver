@@ -14,14 +14,14 @@ if __name__ == "__main__":
 
     reader = r.Reader()
     pool = reader.read_json(filename)
-    # printing.print_pool_donor_nodes(pool)
-    # printing.print_graph(pool)
-    # printing.print_graph_connectivity(pool)
+    printing.print_pool_donor_nodes(pool)
+    printing.print_graph(pool)
+    printing.print_graph_connectivity(pool)
     printing.print_graph(pool)
 
     cycles, chains = pool.create_cycles_and_chain_objects(3)
-    # printing.print_cycles(cycles)
-    printing.print_chains(chains)
+    printing.print_cycles(cycles)
+    # printing.print_chains(chains)
 
     g_solver = solver.GurobiSolver(pool=pool, max_length=3, cycles=cycles, chains=chains)
     # # g_solver.run_gurobi_cycle_finder(pool.donor_patient_nodes)

@@ -45,6 +45,9 @@ class DonorPatientNode(object):
     def add_recipient(self, recipient_patient, score):
         self.recipient_patients.append(RecipientWithScore(recipient_patient, score))
 
+    def add_recipients(self, recipient_patient_list):
+        self.recipient_patients.extend(recipient_patient_list)
+
 class DonorPatientEdge(object):
     def __init__(self, donor_recipient_node, score):
         self.donor_recipient_node = donor_recipient_node
@@ -124,6 +127,22 @@ class Pool():
         for node in self.donor_patient_nodes:
             patient_id_to_nodes[node.patient.id].append(node)
 
+        idx = 0
+        altruist_dp_nodes = []
+        # associate each altruist with a dummy recipient to create a dummy
+        # donor patient node
+        for altruist in self.altruists:
+            dummy_recipient_id = f"dummy_{idx}" 
+            dummy_node = Patient(dummy_recipient_id)
+            dummy_dp = DonorPatientNode(altruist, dummy_node, is_altruist=True)
+            dummy_dp.add_recipients(altruist.recipient_patients)
+            altruist_dp_nodes.append(dummy_dp)
+            idx += 1
+        # then need to append the altruist matches i.e. out going edge from the altruist node
+        # this is not the actual edge as only know the recipient
+        # actually i think this is covered by the for loops below?
+        self.donor_patient_nodes.extend(altruist_dp_nodes)
+
         # for each donor patient node, the corresponding donor
         # to the recipient patient is found through the id_to_nodes list
         for donor_patient_node in self.donor_patient_nodes:
@@ -133,14 +152,25 @@ class Pool():
                 if recipient_patient_id in patient_id_to_nodes:
                     for recipient_node in patient_id_to_nodes[recipient_patient_id]:
                         donor_patient_node.add_edge(recipient_node, score)
+        
 
-        for altruist in self.altruists:
-            for recipient_with_score in altruist.recipient_patients:
-                recipient_patient_id = recipient_with_score.recipient_patient
-                score = recipient_with_score.score
-                if recipient_patient_id in patient_id_to_nodes:
-                    for recipient_node in patient_id_to_nodes[recipient_patient_id]:
-                        altruist.add_edge(recipient_node, score)
+                # OKAY NOW NEED TO ADD ALL THE DUMMY EDGES 
+        # for each altruist, add the edges of the donors 
+
+        for donor_patient_node in self.donor_patient_nodes:
+            if not donor_patient_node.is_altruist:
+                for altruist_node in altruist_dp_nodes:
+                    # the paper states the weight is set to 0
+                    donor_patient_node.add_edge(altruist_node, 0)
+                    
+        # for altruist in self.altruists:
+        #     for recipient_with_score in altruist.recipient_patients:
+        #         recipient_patient_id = recipient_with_score.recipient_patient
+        #         score = recipient_with_score.score
+        #         if recipient_patient_id in patient_id_to_nodes:
+        #             for recipient_node in patient_id_to_nodes[recipient_patient_id]:
+        #                 altruist.add_edge(recipient_node, score)
+
 
     def find_cycles(self, max_length):
         cycles = set()

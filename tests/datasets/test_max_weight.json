@@ -1,0 +1,22 @@
+{ "data" :
+    {
+    "0" : { "sources" : [0],
+            "dage" : 65,
+            "matches" : [ { "recipient" : 1, "score" : 1}]},
+    "1" : { "sources" : [1],
+            "dage" : 45,
+            "matches" : [ { "recipient" : 0, "score" : 1},
+                          { "recipient" : 2, "score" : 7} ]},
+    "2" : { "sources" : [2],
+            "dage" : 32,
+            "matches" : [ { "recipient" : 1, "score" : 3},
+                          { "recipient" : 0, "score" : 4},
+                          { "recipient" : 3, "score" : 6}]},
+    "3" : { "sources" : [3],
+            "dage" : 26,
+            "matches" : [ { "recipient" : 4, "score" : 8}]},
+    "4" : { "sources" : [4],
+            "dage" : 34,
+            "matches" : [ { "recipient" : 2, "score" : 9}]}
+    }
+}

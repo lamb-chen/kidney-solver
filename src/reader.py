@@ -37,7 +37,7 @@ class Reader(object):
                             if source_patient_id not in seen_patient_ids:
                                 pool.patients[source_patient_id] = p.Patient(source_patient_id)
                                 seen_patient_ids.add(source_patient_id)
-                            donor_patient_node = p.DonorPatientNode(donor_obj, pool.patients[source_patient_id], False)
+                            donor_patient_node = p.DonorPatientNode(donor_obj, pool.patients[source_patient_id])
                             if "matches" in donor:
                                 for matched_patient in donor["matches"]:
                                         recipient_patient_id = matched_patient["recipient"]
