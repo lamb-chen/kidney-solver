@@ -10,8 +10,8 @@ class TestIndividualCriteria(unittest.TestCase):
         filename = "tests/datasets/test_max_cycles.json"
         reader = r.Reader()
         pool = reader.read_json(filename)
-        cycles, chains = pool.create_cycles_and_chain_objects(3)
-        g_solver = solver.GurobiSolver(pool=pool, max_length=3, cycles=cycles, chains=chains)
+        cycles = pool.create_cycles_objects(3)
+        g_solver = solver.GurobiSolver(pool=pool, max_length=3, cycles=cycles)
         constraint_list = ["MAX_SIZE"]
         optimal_cycles = g_solver.add_constraints(pool, constraint_list)
         self.assertEqual(len(optimal_cycles[0].donor_patient_nodes), 3)
@@ -20,8 +20,8 @@ class TestIndividualCriteria(unittest.TestCase):
         filename = "tests/datasets/test_max_cycles.json"
         reader = r.Reader()
         pool = reader.read_json(filename)
-        cycles, chains = pool.create_cycles_and_chain_objects(3)
-        g_solver = solver.GurobiSolver(pool=pool, max_length=3, cycles=cycles, chains=chains)
+        cycles = pool.create_cycles_objects(3)
+        g_solver = solver.GurobiSolver(pool=pool, max_length=3, cycles=cycles)
         constraint_list = ["MAX_TWO_CYCLES"]
         optimal_cycles = g_solver.add_constraints(pool, constraint_list)
         self.assertEqual(len(optimal_cycles[0].donor_patient_nodes), 2)
@@ -32,8 +32,8 @@ class TestIndividualCriteria(unittest.TestCase):
         filename = "tests/datasets/test_max_backarcs.json"
         reader = r.Reader()
         pool = reader.read_json(filename)
-        cycles, chains = pool.create_cycles_and_chain_objects(3)
-        g_solver = solver.GurobiSolver(pool=pool, max_length=3, cycles=cycles, chains=chains)
+        cycles = pool.create_cycles_objects(3)
+        g_solver = solver.GurobiSolver(pool=pool, max_length=3, cycles=cycles)
         constraint_list = ["MAX_BACKARCS"]
         optimal_cycles = g_solver.add_constraints(pool, constraint_list)
         for cycle in optimal_cycles:
@@ -45,8 +45,8 @@ class TestIndividualCriteria(unittest.TestCase):
         filename = "tests/datasets/test_max_backarcs_2.json"
         reader = r.Reader()
         pool = reader.read_json(filename)
-        cycles, chains = pool.create_cycles_and_chain_objects(3)
-        g_solver = solver.GurobiSolver(pool=pool, max_length=3, cycles=cycles, chains=chains)
+        cycles = pool.create_cycles_objects(3)
+        g_solver = solver.GurobiSolver(pool=pool, max_length=3, cycles=cycles)
         constraint_list = ["MAX_BACKARCS"]
         optimal_cycles = g_solver.add_constraints(pool, constraint_list)
         for cycle in optimal_cycles:
@@ -57,8 +57,8 @@ class TestIndividualCriteria(unittest.TestCase):
         filename = "tests/datasets/test_max_cycles.json"
         reader = r.Reader()
         pool = reader.read_json(filename)
-        cycles, chains = pool.create_cycles_and_chain_objects(3)
-        g_solver = solver.GurobiSolver(pool=pool, max_length=3, cycles=cycles, chains=chains)
+        cycles = pool.create_cycles_objects(3)
+        g_solver = solver.GurobiSolver(pool=pool, max_length=3, cycles=cycles)
         constraint_list = ["MAX_SIZE", "MIN_THREE_CYCLES"]
         optimal_cycles = g_solver.add_constraints(pool, constraint_list)
         self.assertEqual(len(optimal_cycles[0].donor_patient_nodes), 2)

@@ -31,17 +31,6 @@ def print_cycles(cycles):
         print("Num of backarcs: ", cycle.find_backarcs())
         print("\n")
 
-def print_chains(chains):
-    print("\nChecking chains:")
-    count = 0
-    for chain in chains:  
-        count += 1
-        print("Chain: ", count, "Altruist ID: ", chain.altruist_edge.altruist.id)
-        for node in chain.donor_patient_nodes:  
-            print("Donor:", node.donor.id, "Patient:", node.patient.id)
-        print("Num of backarcs: ", chain.find_backarcs())
-        print("\n")
-
 def print_graph_connectivity(pool):
     print("\nChecking graph connectivity:")
     for node in pool.donor_patient_nodes:

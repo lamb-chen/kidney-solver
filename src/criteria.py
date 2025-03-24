@@ -2,9 +2,6 @@ class MaxTwoCycles():
     def __init__(self):
         self.obj = "MAX"
 
-    def chain_val(self, chain):
-        return 1
-
     def cycle_val(self, cycle):
         if cycle.length == 2: 
             return 1
@@ -16,9 +13,6 @@ class MaxTwoCycles():
 class MaxSize():
     def __init__(self):
         self.obj = "MAX"
-        
-    def chain_val(self, chain):
-        return chain.length
 
     def cycle_val(self, cycle): 
         return cycle.length
@@ -29,9 +23,6 @@ class MaxSize():
 class MinThreeCycles():
     def __init__(self):
         self.obj = "MIN"
-
-    def chain_val(self, chain):
-        return chain.length == 3
 
     def cycle_val(self, cycle): 
         return cycle.length == 3
@@ -44,9 +35,6 @@ class MaxBackarcs():
     def __init__(self):
         self.obj = "MAX"
         
-    def chain_val(self, chain):
-        return chain.length
-
     def cycle_val(self, cycle): 
         if cycle.length < 3:
             return 0
@@ -59,9 +47,6 @@ class MaxOverallWeight():
     def __init__(self):
         self.obj = "MAX"
         
-    def chain_val(self, chain):
-        return chain.get_chain_weight()
-
     def cycle_val(self, cycle): 
         return cycle.get_cycle_weight()
 

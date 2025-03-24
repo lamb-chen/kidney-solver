@@ -1,0 +1,15 @@
+{ "data" :
+    {
+    "0" : { "altruistic": true,
+            "dage" : 29,
+            "matches" : [ { "recipient" : 1, "score" :  10},
+                          { "recipient" : 3, "score" :  10} ]},
+    "1" : { "sources" : [1],
+            "dage" : 45,
+            "matches" : [ { "recipient" : 2, "score" : 1}]},
+    "2" : { "sources" : [2],
+            "dage" : 32},
+    "3" : { "sources" : [3],
+            "dage" : 45}
+    }
+}

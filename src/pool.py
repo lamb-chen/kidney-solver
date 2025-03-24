@@ -1,12 +1,13 @@
 from collections import namedtuple, defaultdict
 
-class AltruistNode(object):
+class Altruist(object):
     def __init__(self, id, dage):
         self.id = id
         self.dage = dage
         self.recipient_patients = []
         self.out_edges = []
         self.mip_vars = []
+        self.mip_unmatched = None
     
     def add_recipient(self, recipient_patient, score):
         self.recipient_patients.append(RecipientWithScore(recipient_patient, score))
@@ -75,34 +76,6 @@ class Cycle(object):
 
     def get_cycle_weight(self):
         total_score = 0
-        for node in self.donor_patient_nodes:
-            total_score += node.score
-        return total_score
-
-class Chain(object):
-    def __init__(self, altruist_edge, donor_patient_nodes, length, index):
-        self.altruist_edge = altruist_edge
-        self.donor_patient_nodes = donor_patient_nodes
-        self.mip_var = None
-        self.length = length
-        self.index = index
-    
-    def find_backarcs(self):
-        backarcs = 0
-        for i in range(len(self.donor_patient_nodes)):
-            curr_node = self.donor_patient_nodes[i]
-            prev_node = self.donor_patient_nodes[i-1]
-            for edge in curr_node.out_edges:
-                if edge.donor_recipient_node == prev_node:
-                    print("\nBackarc pair:")      
-                    print("Donor:", curr_node.donor.id, "Patient:", curr_node.patient.id)      
-                    print("Donor:", prev_node.donor.id, "Patient:", prev_node.patient.id)                    
-                    backarcs += 1
-        return backarcs
-    
-    def get_chain_weight(self):
-        total_score = 0
-        total_score += self.altruist_edge.score
         for node in self.donor_patient_nodes:
             total_score += node.score
         return total_score
@@ -206,7 +179,7 @@ class Pool():
             dfs(start_node)
         return cycles
 
-    def create_cycles_and_chain_objects(self, max_length):
+    def create_cycles_objects(self, max_length):
         idx = 0
 
         final_cycles = []
@@ -216,44 +189,6 @@ class Pool():
             final_cycles.append(Cycle(list(cycle), len(cycle), idx))
             idx += 1
 
-        final_chains = []
-        found_chains = self.find_chains(max_length)
-
-        for chain in found_chains:
-            altruist_edge = chain.pop(0)
-            final_chains.append(Chain(altruist_edge, chain, len(chain), idx))
-            idx += 1
-
-        return final_cycles, final_chains
-    
-    def find_chains(self, max_length):
-        if max_length == 0:
-            return []
-        
-        chains = []
-        
-        for altruist in self.altruists:
-            for edge in altruist.out_edges:
-                chain = [edge]  
-                
-                def dfs(dp_node):
-                    if 1 < len(chain) <= max_length:
-                        chains.append(chain[:])  # Save a copy of the chain
-
-                    if len(chain) == max_length:
-                        return
-                    
-                    for edge in dp_node.out_edges:
-                        next_node = edge.donor_recipient_node
-                        chain.append(dp_node)
-                        dfs(next_node)
-                        chain.pop()  
-                
-                    return
-                
-                dp_node = edge.target_donor_patient_node
-                dfs(dp_node)
-        
-        return chains
+        return final_cycles
 
 RecipientWithScore = namedtuple('RecipientWithScore', ['recipient_patient', 'score'])

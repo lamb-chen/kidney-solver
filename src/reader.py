@@ -19,7 +19,7 @@ class Reader(object):
                     dage = int(donor["dage"])
                     is_altruistic = "altruistic" in json_data[donor_id] and json_data[donor_id]["altruistic"]
                     if is_altruistic:
-                        altruist = p.AltruistNode(donor_id, dage)
+                        altruist = p.Altruist(donor_id, dage)
                         if "matches" in donor:
                             for matched_patient in donor["matches"]:
                                 recipient_patient_id = matched_patient["recipient"]
