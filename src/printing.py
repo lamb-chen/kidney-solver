@@ -28,6 +28,7 @@ def print_cycles(cycles):
         print("\nCycle:", count)
         for node in cycle.donor_patient_nodes:  
             print("Donor:", node.donor.id, "Patient:", node.patient.id)
+        print("cycle: ", cycle.index, "weight: ", cycle.get_cycle_weight())
         print("Num of backarcs: ", cycle.find_backarcs())
         print("\n")
 

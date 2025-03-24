@@ -1,7 +1,7 @@
 from gurobipy import *
 import criteria
 
-class GurobiSolver(object):
+class MultiobjectiveOptimiser(object):
     def __init__(self, pool, max_length, cycles):
         self.model = Model()
         self.pool = pool
@@ -16,19 +16,24 @@ class GurobiSolver(object):
     def _items_in_optimal_solution(self, items):
             return [item for item in items if item.mip_var.X > 0.5]
     
-    def choose_constraints(self, constraint_list, cycles):
+    def choose_constraints(self, constraint_list, cycles, altruists):
         final_constraints = []
         for constraint in constraint_list:
             if constraint == "MAX_TWO_CYCLES":
                 final_constraints.append([cycle.mip_var * criteria.MaxTwoCycles().cycle_val(cycle) for cycle in cycles])
+                final_constraints.append([altruist.mip_unmatched * criteria.MaxTwoCycles().altruist_val(altruist) for altruist in altruists])
             elif constraint == "MAX_SIZE":
                 final_constraints.append([cycle.mip_var * criteria.MaxSize().cycle_val(cycle) for cycle in cycles])
+                final_constraints.append([altruist.mip_unmatched * criteria.MaxSize().altruist_val(altruist) for altruist in altruists])
             elif constraint == "MAX_BACKARCS":
                 final_constraints.append([cycle.mip_var * criteria.MaxBackarcs().cycle_val(cycle) for cycle in cycles])
+                final_constraints.append([altruist.mip_unmatched * criteria.MaxBackarcs().altruist_val(altruist) for altruist in altruists])
             elif constraint == "MIN_THREE_CYCLES":
                 final_constraints.append([cycle.mip_var * criteria.MinThreeCycles().cycle_val(cycle) for cycle in cycles])
+                final_constraints.append([altruist.mip_unmatched * criteria.MinThreeCycles().altruist_val(altruist) for altruist in altruists])
             elif constraint == "MAX_WEIGHT":
                 final_constraints.append([cycle.mip_var * criteria.MaxOverallWeight().cycle_val(cycle) for cycle in cycles])
+                final_constraints.append([altruist.mip_unmatched * criteria.MaxOverallWeight().altruist_val(altruist) for altruist in altruists])
         return final_constraints
 
 
@@ -70,10 +75,11 @@ class GurobiSolver(object):
         self.model.ModelSense = GRB.MAXIMIZE 
         self.model.update()
 
-        final_constraints = self.choose_constraints(constraint_list, self.cycles)
+        final_constraints = self.choose_constraints(constraint_list, self.cycles, pool.altruists)
         for i in range(len(final_constraints)):
             print(final_constraints, "FINAL CONSTS")
-            if constraint_list[i] == "MIN_THREE_CYCLES":
+            if constraint_list[i//2] == "MIN_THREE_CYCLES":
+                print("helloooo")
                 self.model.setObjectiveN(-quicksum(final_constraints[i]), index=i, weight=1.0, priority=i, name=f"Objective_{i}")        
             else:
                 self.model.setObjectiveN(quicksum(final_constraints[i]), index=i, weight=1.0, priority=i, name=f"Objective_{i}")        

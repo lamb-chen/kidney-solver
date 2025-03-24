@@ -76,8 +76,14 @@ class Cycle(object):
 
     def get_cycle_weight(self):
         total_score = 0
-        for node in self.donor_patient_nodes:
-            total_score += node.score
+        for i in range(len(self.donor_patient_nodes)):
+            current_node = self.donor_patient_nodes[i]
+            next_node = self.donor_patient_nodes[(i + 1) % len(self.donor_patient_nodes)]
+    
+            for edge in current_node.out_edges:
+                if edge.donor_recipient_node == next_node:
+                    total_score += edge.score
+                    break
         return total_score
 
 class Pool():

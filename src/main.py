@@ -1,8 +1,9 @@
 import pool as p
 import reader as r
-import solver 
+import hierarchal 
 import printing
 import sys
+import analyser
 
 
 if __name__ == "__main__":
@@ -23,9 +24,10 @@ if __name__ == "__main__":
     printing.print_cycles(cycles)
     # printing.print_chains(chains)
 
-    g_solver = solver.GurobiSolver(pool=pool, max_length=3, cycles=cycles)
+    g_solver = hierarchal.HierarchalOptimiser(pool=pool, max_length=3, cycles=cycles)
     # # g_solver.run_gurobi_cycle_finder(pool.donor_patient_nodes)
-    constraint_list = ["MAX_SIZE"]
+    constraint_list = ["MAX_TWO_CYCLES", "MAX_SIZE", "MAX_BACKARCS", "MIN_THREE_CYCLES", "MAX_WEIGHT"]
     optimal_cycles = g_solver.add_constraints(pool, constraint_list)
-
+    print(analyser.get_n_total_transplants(optimal_cycles),"\n")
+    print(analyser.get_total_weight(optimal_cycles),"\n")
     printing.print_optimal_cycles(optimal_cycles)
