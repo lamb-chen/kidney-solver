@@ -1,7 +1,7 @@
 from gurobipy import *
 import criteria
 
-class HierarchalOptimiser(object):
+class BlendedOptimiser(object):
     def __init__(self, pool, max_length, cycles):
         self.model = Model()
         self.pool = pool
@@ -42,9 +42,6 @@ class HierarchalOptimiser(object):
 
         for cycle in self.cycles:
             cycle.mip_var = self.model.addVar(vtype=GRB.BINARY, name='cycle' + str(cycle.index))
-        # for altruist in pool.altruists:
-        #     altruist.mip_var = self.model.addVar(vtype=GRB.BINARY, name='altruist' + str(altruist.id))
-        #     altruist.mip_vars.append(altruist.mip_var)
         self.model.update()
 
         for cycle in self.cycles:
@@ -58,6 +55,7 @@ class HierarchalOptimiser(object):
         for altruist in pool.altruists:
             altruist.mip_unmatched = self.model.addVar(vtype=GRB.BINARY, name=f'unmatched_altruist_{altruist.id}')
 
+        self.model.setParam(GRB.Param.MultiObjMethod, 1) 
         self.model.update()
 
         for i, altruist in enumerate(pool.altruists):
@@ -76,18 +74,26 @@ class HierarchalOptimiser(object):
         self.model.update()
 
         final_constraints = self.choose_constraints(constraint_list, self.cycles, pool.altruists)
+
         for i in range(len(final_constraints)):
-            print(final_constraints, "FINAL CONSTS")
             if constraint_list[i//2] == "MIN_THREE_CYCLES":
-                print("helloooo")
-                self.model.setObjectiveN(-quicksum(final_constraints[i]), index=i, weight=1.0, priority=i, name=f"Objective_{i}")        
+                self.model.setObjectiveN(-quicksum(final_constraints[i]), index=i, priority=0)    
             else:
-                self.model.setObjectiveN(quicksum(final_constraints[i]), index=i, weight=1.0, priority=i, name=f"Objective_{i}")        
-                
-        # maximum size cycle i.e. max number of transplants
-        # self.model.setObjectiveN(quicksum([cycle.mip_var * criteria.MaxSize().cycle_val(cycle) for cycle in self.cycles]), index=2, weight=1.0, priority=2)        
-        # self.model.setObjectiveN(quicksum([cycle.mip_var * criteria.MaxBackarcs().cycle_val(cycle) for cycle in self.cycles]), index=3, weight=1.0, priority=3)        
-        # self.model.setObjectiveN(quicksum([cycle.mip_var * criteria.MinThreeCyles().cycle_val(cycle) for cycle in self.cycles]), index=4, weight=-1.0, priority=4)     
+                self.model.setObjectiveN(quicksum(final_constraints[i]), index=i, priority=0)     
+                print(i) 
+        self.model.update()
+        weights_list = [0.1, 1, 0.1, 0.1, 1]
+        self.model.Params.ObjNumber = self.model.NumObj
+        # weights = self.model.getAttr("ObjNWeight")
+        print("Number of objectives:", self.model.NumObj)
+        # print("ObjNWeight:", weights)
+        # print("Type of ObjNWeight:", type(weights))
+        for i in range(len(weights_list)):
+            self.model.Params.ObjNumber = i
+            self.model.ObjNWeight = weights_list[i]
+            self.model.Params.ObjNumber = i + 1
+            self.model.ObjNWeight = weights_list[i]
+
         self.model.optimize()
         optimal_cycles = self._items_in_optimal_solution(self.cycles)
         # for var in self.model.getVars():

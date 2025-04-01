@@ -1,5 +1,5 @@
 import pool as p
-import solver 
+import lexcographic 
 import printing
 import json
 

@@ -1,0 +1,44 @@
+{ "data" :
+    {
+    "1" : { "sources" : [1],
+            "dage" : 44,
+            "matches" : [ { "recipient" : 3, "score" : 1},
+                          { "recipient" : 5, "score" : 1}]},
+    "2" : { "sources" : [2],
+            "dage" : 22,
+            "matches" : [ { "recipient" : 1, "score" : 1}, 
+                          { "recipient" : 7, "score" : 10}]},
+ 
+    "3" : { "sources" : [3],
+            "dage" : 33,
+            "matches" : [ { "recipient" : 2, "score" : 1},
+                          { "recipient" : 9, "score" : 9}]},
+ 
+    "4" : { "sources" : [4],
+            "dage" : 55,
+            "matches" : [ { "recipient" : 1, "score" : 10},
+                          { "recipient" : 5, "score" : 2}]},
+ 
+    "5" : { "sources" : [5],
+            "dage" : 30,
+            "matches" : [ { "recipient" : 4, "score" :  1}]},
+     
+    "6" : { "sources" : [6],
+            "dage" : 30,
+            "matches" : [ { "recipient" : 2, "score" :  10},
+                          { "recipient" : 7, "score" : 2}]},
+    
+    "7" : { "sources" : [7],
+            "dage" : 30,
+            "matches" : [ { "recipient" : 6, "score" :  10}]},
+
+    "8" : { "sources" : [8],
+            "dage" : 55,
+            "matches" : [ { "recipient" : 3, "score" : 10},
+                          { "recipient" : 9, "score" : 10}]},
+
+    "9" : { "sources" : [9],
+            "dage" : 55,
+            "matches" : [ { "recipient" : 8, "score" : 10}]}
+        }
+}

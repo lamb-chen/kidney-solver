@@ -3,7 +3,11 @@ class MaxTwoCycles():
         self.obj = "MAX"
 
     def cycle_val(self, cycle):
-        if cycle.length == 2: 
+        if cycle.length == 3:
+            cycle.no_of_backarcs = cycle.find_backarcs()
+            if cycle.no_of_backarcs > 0:
+                return 1 
+        if cycle.length == 2:
             return 1
         return 0
 

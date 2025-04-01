@@ -55,11 +55,12 @@ class DonorPatientEdge(object):
         self.score = score
 
 class Cycle(object):
-    def __init__(self, donor_patient_nodes, length, index):
+    def __init__(self, donor_patient_nodes, length, index, is_chain=False):
         self.donor_patient_nodes = donor_patient_nodes
         self.mip_var = None
         self.length = length
         self.index = index
+        self.is_chain = is_chain
     
     def find_backarcs(self):
         backarcs = 0
@@ -70,7 +71,6 @@ class Cycle(object):
                 if edge.donor_recipient_node == prev_node:
                     print("\nBackarc pair:")      
                     print("Donor:", curr_node.donor.id, "Patient:", curr_node.patient.id)      
-                    print("Donor:", prev_node.donor.id, "Patient:", prev_node.patient.id)                    
                     backarcs += 1
         return backarcs
 
@@ -133,7 +133,7 @@ class Pool():
                         donor_patient_node.add_edge(recipient_node, score)
         
 
-                # OKAY NOW NEED TO ADD ALL THE DUMMY EDGES 
+        # OKAY NOW NEED TO ADD ALL THE DUMMY EDGES 
         # for each altruist, add the edges of the donors 
 
         for donor_patient_node in self.donor_patient_nodes:
@@ -141,15 +141,6 @@ class Pool():
                 for altruist_node in altruist_dp_nodes:
                     # the paper states the weight is set to 0
                     donor_patient_node.add_edge(altruist_node, 0)
-                    
-        # for altruist in self.altruists:
-        #     for recipient_with_score in altruist.recipient_patients:
-        #         recipient_patient_id = recipient_with_score.recipient_patient
-        #         score = recipient_with_score.score
-        #         if recipient_patient_id in patient_id_to_nodes:
-        #             for recipient_node in patient_id_to_nodes[recipient_patient_id]:
-        #                 altruist.add_edge(recipient_node, score)
-
 
     def find_cycles(self, max_length):
         cycles = set()
@@ -190,9 +181,12 @@ class Pool():
 
         final_cycles = []
         found_cycles = self.find_cycles(max_length)
-
+        is_chain = False
         for cycle in found_cycles:
-            final_cycles.append(Cycle(list(cycle), len(cycle), idx))
+            for node in cycle:
+                if node.is_altruist:
+                    is_chain = True
+            final_cycles.append(Cycle(list(cycle), len(cycle), idx, is_chain))
             idx += 1
 
         return final_cycles

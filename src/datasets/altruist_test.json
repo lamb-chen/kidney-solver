@@ -8,8 +8,7 @@
             "dage" : 45,
             "matches" : [ { "recipient" : 2, "score" : 1}]},
     "2" : { "sources" : [2],
-            "dage" : 32,
-            "matches" : [ { "recipient" : 1, "score" : 3}]},
+            "dage" : 32},
     "3" : { "sources" : [3],
             "dage" : 45}
     }

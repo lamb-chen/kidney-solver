@@ -1,6 +1,6 @@
 import unittest
 from src import reader as r
-from src import solver
+from . import hierarchal
 from src import pool as p
 
 class TestCycleFinder(unittest.TestCase):
@@ -23,7 +23,7 @@ class TestCycleFinder(unittest.TestCase):
         reader = r.Reader()
         pool = reader.read_json(filename)
         cycles = pool.create_cycles_objects(3)
-        g_solver = solver.GurobiSolver(pool=pool, max_length=3, cycles=cycles)
+        g_solver = hierarchal.HierarchalOptimiser(pool=pool, max_length=3, cycles=cycles)
         two_cycles_list, three_cycles_list = g_solver.run_gurobi_cycle_finder(pool.donor_patient_nodes)
         total_cycle_count = len(two_cycles_list) + len(three_cycles_list)
         self.assertEqual(total_cycle_count, len(cycles))

@@ -1,7 +1,7 @@
 from gurobipy import *
 import criteria
 
-class MultiobjectiveOptimiser(object):
+class HierarchalOptimiser(object):
     def __init__(self, pool, max_length, cycles):
         self.model = Model()
         self.pool = pool
@@ -77,17 +77,11 @@ class MultiobjectiveOptimiser(object):
 
         final_constraints = self.choose_constraints(constraint_list, self.cycles, pool.altruists)
         for i in range(len(final_constraints)):
-            print(final_constraints, "FINAL CONSTS")
             if constraint_list[i//2] == "MIN_THREE_CYCLES":
-                print("helloooo")
                 self.model.setObjectiveN(-quicksum(final_constraints[i]), index=i, weight=1.0, priority=i, name=f"Objective_{i}")        
             else:
                 self.model.setObjectiveN(quicksum(final_constraints[i]), index=i, weight=1.0, priority=i, name=f"Objective_{i}")        
                 
-        # maximum size cycle i.e. max number of transplants
-        # self.model.setObjectiveN(quicksum([cycle.mip_var * criteria.MaxSize().cycle_val(cycle) for cycle in self.cycles]), index=2, weight=1.0, priority=2)        
-        # self.model.setObjectiveN(quicksum([cycle.mip_var * criteria.MaxBackarcs().cycle_val(cycle) for cycle in self.cycles]), index=3, weight=1.0, priority=3)        
-        # self.model.setObjectiveN(quicksum([cycle.mip_var * criteria.MinThreeCyles().cycle_val(cycle) for cycle in self.cycles]), index=4, weight=-1.0, priority=4)     
         self.model.optimize()
         optimal_cycles = self._items_in_optimal_solution(self.cycles)
         # for var in self.model.getVars():
